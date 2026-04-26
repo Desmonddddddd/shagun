@@ -1,0 +1,240 @@
+// ========================================
+// Shagun — Wedding Super App
+// Database Schema
+// ========================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ========================================
+// Auth Models (NextAuth.js v5)
+// ========================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  phone         String?
+  password      String?
+  role          String    @default("CUSTOMER") // CUSTOMER | VENDOR | ADMIN
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+  vendor   Vendor?
+  leads    Lead[]    @relation("CustomerLeads")
+  reviews  Review[]  @relation("CustomerReviews")
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ========================================
+// Business Models
+// ========================================
+
+model Category {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  slug         String   @unique
+  description  String?
+  icon         String?  // Lucide icon name
+  image        String?
+  vendorCount  Int      @default(0)
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  vendors Vendor[]
+
+  @@map("categories")
+}
+
+model City {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  state       String
+  vendorCount Int      @default(0)
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  vendors Vendor[]
+
+  @@map("cities")
+}
+
+model Vendor {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  businessName    String
+  slug            String   @unique
+  description     String
+  phone           String?
+  email           String?
+  website         String?
+  address         String?
+  cityId          String
+  categoryId      String
+  status          String   @default("PENDING") // PENDING | APPROVED | REJECTED | SUSPENDED
+  featured        Boolean  @default(false)
+  rating          Float    @default(0)
+  reviewCount     Int      @default(0)
+  startingPrice   Int      @default(0)
+  experience      Int?     // years
+  teamSize        Int?
+  eventsCompleted Int?
+  coverImage      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category        @relation(fields: [categoryId], references: [id])
+  city     City            @relation(fields: [cityId], references: [id])
+  services VendorService[]
+  packages Package[]
+  leads    Lead[]
+  reviews  Review[]
+  media    Media[]
+
+  @@index([categoryId])
+  @@index([cityId])
+  @@index([status])
+  @@index([rating])
+  @@index([startingPrice])
+  @@map("vendors")
+}
+
+model VendorService {
+  id          String  @id @default(cuid())
+  vendorId    String
+  name        String
+  description String?
+  price       Int
+  unit        String  @default("per_event") // per_event | per_day | per_hour | per_person | per_plate
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@map("vendor_services")
+}
+
+model Package {
+  id          String  @id @default(cuid())
+  vendorId    String
+  name        String
+  description String?
+  price       Int
+  features    String  // JSON array stored as string (SQLite limitation)
+  popular     Boolean @default(false)
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@map("packages")
+}
+
+model Lead {
+  id         String   @id @default(cuid())
+  customerId String?
+  vendorId   String
+  name       String
+  email      String
+  phone      String
+  eventDate  DateTime?
+  eventType  String?
+  guestCount String?
+  budget     String?
+  message    String
+  status     String   @default("NEW") // NEW | CONTACTED | NEGOTIATING | BOOKED | CLOSED
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  customer User?  @relation("CustomerLeads", fields: [customerId], references: [id])
+  vendor   Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@index([vendorId])
+  @@index([customerId])
+  @@index([status])
+  @@map("leads")
+}
+
+model Review {
+  id         String    @id @default(cuid())
+  vendorId   String
+  customerId String
+  rating     Int       // 1-5
+  title      String?
+  comment    String
+  eventDate  DateTime?
+  status     String    @default("APPROVED") // PENDING | APPROVED | REJECTED
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  vendor   Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  customer User   @relation("CustomerReviews", fields: [customerId], references: [id])
+
+  @@index([vendorId])
+  @@index([customerId])
+  @@map("reviews")
+}
+
+model Media {
+  id           String @id @default(cuid())
+  vendorId     String
+  url          String
+  type         String @default("IMAGE") // IMAGE | VIDEO
+  caption      String?
+  displayOrder Int    @default(0)
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@index([vendorId])
+  @@map("media")
+}
