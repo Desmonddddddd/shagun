@@ -1,6 +1,6 @@
 // ========================================
 // Shagun — Wedding Super App
-// Database Schema
+// Database Schema v2.0
 // ========================================
 
 generator client {
@@ -27,11 +27,13 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts Account[]
-  sessions Session[]
-  vendor   Vendor?
-  leads    Lead[]    @relation("CustomerLeads")
-  reviews  Review[]  @relation("CustomerReviews")
+  accounts      Account[]
+  sessions      Session[]
+  vendor        Vendor?
+  leads         Lead[]         @relation("CustomerLeads")
+  reviews       Review[]       @relation("CustomerReviews")
+  savedVendors  SavedVendor[]
+  chatSessions  ChatSession[]
 
   @@map("users")
 }
@@ -77,31 +79,55 @@ model VerificationToken {
 }
 
 // ========================================
-// Business Models
+// Category & Subcategory
 // ========================================
 
 model Category {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  slug          String         @unique
+  description   String?
+  icon          String?        // Lucide icon name
+  image         String?
+  vendorCount   Int            @default(0)
+  displayOrder  Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  subcategories Subcategory[]
+  vendors       Vendor[]
+
+  @@map("categories")
+}
+
+model Subcategory {
   id           String   @id @default(cuid())
-  name         String   @unique
-  slug         String   @unique
+  name         String
+  slug         String
   description  String?
-  icon         String?  // Lucide icon name
-  image        String?
+  categoryId   String
   vendorCount  Int      @default(0)
   displayOrder Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  vendors Vendor[]
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  vendors  Vendor[] @relation("VendorSubcategory")
 
-  @@map("categories")
+  @@unique([categoryId, slug])
+  @@map("subcategories")
 }
+
+// ========================================
+// Location
+// ========================================
 
 model City {
   id          String   @id @default(cuid())
   name        String   @unique
   slug        String   @unique
   state       String
+  image       String?
   vendorCount Int      @default(0)
   featured    Boolean  @default(false)
   createdAt   DateTime @default(now())
@@ -111,6 +137,10 @@ model City {
 
   @@map("cities")
 }
+
+// ========================================
+// Vendor
+// ========================================
 
 model Vendor {
   id              String   @id @default(cuid())
@@ -124,6 +154,7 @@ model Vendor {
   address         String?
   cityId          String
   categoryId      String
+  subcategoryId   String?
   status          String   @default("PENDING") // PENDING | APPROVED | REJECTED | SUSPENDED
   featured        Boolean  @default(false)
   rating          Float    @default(0)
@@ -133,23 +164,32 @@ model Vendor {
   teamSize        Int?
   eventsCompleted Int?
   coverImage      String?
+  instagram       String?
+  facebook        String?
+  youtube         String?
+  highlights      String?  // JSON array as string
+  faqs            String?  // JSON array as string [{q, a}]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category Category        @relation(fields: [categoryId], references: [id])
-  city     City            @relation(fields: [cityId], references: [id])
-  services VendorService[]
-  packages Package[]
-  leads    Lead[]
-  reviews  Review[]
-  media    Media[]
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category     Category        @relation(fields: [categoryId], references: [id])
+  subcategory  Subcategory?    @relation("VendorSubcategory", fields: [subcategoryId], references: [id])
+  city         City            @relation(fields: [cityId], references: [id])
+  services     VendorService[]
+  packages     Package[]
+  leads        Lead[]
+  reviews      Review[]
+  media        Media[]
+  savedBy      SavedVendor[]
 
   @@index([categoryId])
+  @@index([subcategoryId])
   @@index([cityId])
   @@index([status])
   @@index([rating])
   @@index([startingPrice])
+  @@index([featured])
   @@map("vendors")
 }
 
@@ -172,7 +212,7 @@ model Package {
   name        String
   description String?
   price       Int
-  features    String  // JSON array stored as string (SQLite limitation)
+  features    String  // JSON array stored as string
   popular     Boolean @default(false)
 
   vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
@@ -180,8 +220,12 @@ model Package {
   @@map("packages")
 }
 
+// ========================================
+// Leads & Reviews
+// ========================================
+
 model Lead {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   customerId String?
   vendorId   String
   name       String
@@ -192,9 +236,9 @@ model Lead {
   guestCount String?
   budget     String?
   message    String
-  status     String   @default("NEW") // NEW | CONTACTED | NEGOTIATING | BOOKED | CLOSED
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  status     String    @default("NEW") // NEW | CONTACTED | NEGOTIATING | BOOKED | CLOSED
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   customer User?  @relation("CustomerLeads", fields: [customerId], references: [id])
   vendor   Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
@@ -225,6 +269,10 @@ model Review {
   @@map("reviews")
 }
 
+// ========================================
+// Media
+// ========================================
+
 model Media {
   id           String @id @default(cuid())
   vendorId     String
@@ -237,4 +285,90 @@ model Media {
 
   @@index([vendorId])
   @@map("media")
+}
+
+// ========================================
+// Saved/Wishlist
+// ========================================
+
+model SavedVendor {
+  id        String   @id @default(cuid())
+  userId    String
+  vendorId  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, vendorId])
+  @@map("saved_vendors")
+}
+
+// ========================================
+// AI Chat
+// ========================================
+
+model ChatSession {
+  id        String        @id @default(cuid())
+  userId    String?
+  title     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  user     User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  role      String   // "user" | "assistant"
+  content   String
+  createdAt DateTime @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("chat_messages")
+}
+
+// ========================================
+// Content
+// ========================================
+
+model RealWedding {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  couple      String   // "Priya & Rahul"
+  city        String
+  date        DateTime
+  description String
+  coverImage  String
+  images      String   // JSON array of image URLs
+  vendorNames String?  // JSON array of vendor names used
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("real_weddings")
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String
+  content     String
+  coverImage  String
+  author      String
+  category    String   // "Planning Tips" | "Trends" | "Inspiration" | "Budget"
+  tags        String?  // JSON array
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("blog_posts")
 }
