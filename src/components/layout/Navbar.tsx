@@ -2,113 +2,89 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
-import { Menu, X, Search, Heart, User } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Container } from "@/components/ui/Container";
-import { Button } from "@/components/ui/Button";
 
-const navLinks = [
-  { label: "Venues", href: "/categories/venues" },
-  { label: "Vendors", href: "/categories" },
+const links = [
+  { label: "Vendors", href: "/vendors" },
   { label: "Real Weddings", href: "/real-weddings" },
   { label: "Blog", href: "/blog" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
-  const { data: session } = useSession();
+  const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-cream-dark/50">
-      <Container>
-        <div className="flex items-center justify-between h-16 sm:h-20">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl sm:text-3xl font-heading font-bold text-gradient-magenta">
-              Shagun
-            </span>
+    <header className="sticky top-0 z-50 bg-surface/80 backdrop-blur-lg border-b border-border-light">
+      <div className="max-w-6xl mx-auto px-5 sm:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="font-heading text-2xl font-semibold text-text tracking-tight">
+            Shaadisetu
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-8">
-            {navLinks.map((link) => (
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-8">
+            {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-charcoal hover:text-magenta transition-colors font-medium"
+                className="text-text-muted hover:text-text transition-colors text-sm font-medium"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
 
-          <div className="hidden lg:flex items-center gap-4">
-            <button className="p-2 text-charcoal hover:text-magenta transition-colors" aria-label="Search">
-              <Search size={20} />
-            </button>
-            <Link href="/saved" className="p-2 text-charcoal hover:text-magenta transition-colors" aria-label="Saved vendors">
-              <Heart size={20} />
+          {/* CTA */}
+          <div className="hidden md:block">
+            <Link
+              href="/get-started"
+              className="inline-flex items-center px-5 py-2 bg-rose text-white text-sm font-medium rounded-lg hover:bg-rose-dark transition-colors"
+            >
+              Get Started
             </Link>
-            {session ? (
-              <Link href={session.user.role === "VENDOR" ? "/vendor/dashboard" : session.user.role === "ADMIN" ? "/admin/dashboard" : "/profile"}>
-                <Button variant="outline" size="sm">
-                  <User size={16} className="mr-2" />
-                  {session.user.name || "Account"}
-                </Button>
-              </Link>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Link href="/login">
-                  <Button variant="ghost" size="sm">Log In</Button>
-                </Link>
-                <Link href="/register">
-                  <Button variant="primary" size="sm">Sign Up</Button>
-                </Link>
-              </div>
-            )}
           </div>
 
+          {/* Mobile toggle */}
           <button
-            className="lg:hidden p-2 text-charcoal"
-            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden p-2 text-text-muted"
+            onClick={() => setOpen(!open)}
             aria-label="Toggle menu"
           >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
+            {open ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
 
-        {isOpen && (
-          <div className="lg:hidden py-4 border-t border-cream-dark/50">
-            <nav className="flex flex-col gap-3">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsOpen(false)}
-                  className="text-charcoal hover:text-magenta transition-colors font-medium py-2"
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <div className="flex gap-2 pt-4 border-t border-cream-dark/50">
-                {session ? (
-                  <Link href="/profile" className="w-full">
-                    <Button variant="outline" size="sm" className="w-full">Account</Button>
-                  </Link>
-                ) : (
-                  <>
-                    <Link href="/login" className="flex-1">
-                      <Button variant="ghost" size="sm" className="w-full">Log In</Button>
-                    </Link>
-                    <Link href="/register" className="flex-1">
-                      <Button variant="primary" size="sm" className="w-full">Sign Up</Button>
-                    </Link>
-                  </>
-                )}
-              </div>
-            </nav>
-          </div>
-        )}
-      </Container>
+        {/* Mobile menu */}
+        <div
+          className={cn(
+            "md:hidden overflow-hidden transition-all duration-300",
+            open ? "max-h-64 pb-6" : "max-h-0"
+          )}
+        >
+          <nav className="flex flex-col gap-1 pt-2">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setOpen(false)}
+                className="text-text-muted hover:text-text transition-colors py-2.5 text-sm font-medium"
+              >
+                {link.label}
+              </Link>
+            ))}
+            <Link
+              href="/get-started"
+              onClick={() => setOpen(false)}
+              className="inline-flex items-center justify-center mt-2 px-5 py-2.5 bg-rose text-white text-sm font-medium rounded-lg hover:bg-rose-dark transition-colors"
+            >
+              Get Started
+            </Link>
+          </nav>
+        </div>
+      </div>
     </header>
   );
 }

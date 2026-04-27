@@ -1,53 +1,38 @@
 import type { Metadata } from "next";
-import { Playfair_Display, DM_Sans } from "next/font/google";
+import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { Providers } from "./providers";
 
-const playfair = Playfair_Display({
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
   subsets: ["latin"],
-  variable: "--font-playfair",
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-const dmSans = DM_Sans({
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  variable: "--font-dm-sans",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: {
-    default: "Shagun — India's Wedding Super App",
-    template: "%s | Shagun",
-  },
-  description:
-    "Find the best wedding vendors, venues, photographers, makeup artists, and more. Plan your dream Indian wedding with Shagun.",
-  keywords: [
-    "wedding",
-    "indian wedding",
-    "wedding vendors",
-    "wedding venues",
-    "bridal makeup",
-    "wedding photographer",
-    "shagun",
-  ],
+  title: "Shaadisetu — Where Every Wedding Begins",
+  description: "Find the perfect wedding vendors for your celebration. Venues, photographers, makeup artists, decorators, and more — all in one place.",
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    <html lang="en" className={`${playfair.variable} ${dmSans.variable}`}>
-      <body className="bg-cream text-charcoal font-body antialiased">
-        <Providers>
-          <Navbar />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
-        </Providers>
+    <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
+      <body className="min-h-screen flex flex-col antialiased">
+        <Navbar />
+        <main className="flex-1">{children}</main>
+        <Footer />
       </body>
     </html>
   );
