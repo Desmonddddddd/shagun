@@ -9,54 +9,63 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 const steps = [
   {
     icon: Search,
-    title: "Browse & Discover",
-    description: "Explore thousands of verified wedding vendors across 14 categories and 50+ cities. Filter by budget, rating, and style.",
-    color: "magenta",
+    number: "01",
+    title: "Discover",
+    description: "Browse curated wedding vendors across 14 categories. Filter by city, budget, and style to find your perfect match.",
+    gradient: "from-magenta to-magenta-dark",
   },
   {
     icon: MessageCircle,
-    title: "Connect & Compare",
-    description: "Get quotes, compare packages, read real reviews. Use Shagun AI to find your perfect match instantly.",
-    color: "gold",
+    number: "02",
+    title: "Connect",
+    description: "Compare packages, read verified reviews, and chat directly. Or let Shagun AI recommend vendors tailored to your vision.",
+    gradient: "from-gold to-gold-dark",
   },
   {
     icon: PartyPopper,
-    title: "Celebrate!",
-    description: "Book your dream team and celebrate your perfect wedding. Share your story to inspire other couples.",
-    color: "saffron",
+    number: "03",
+    title: "Celebrate",
+    description: "Book your dream team and bring your celebration to life. Every detail handled, every moment unforgettable.",
+    gradient: "from-saffron to-saffron-light",
   },
 ];
 
-const colorMap: Record<string, string> = {
-  magenta: "bg-magenta/10 text-magenta",
-  gold: "bg-gold/10 text-gold-dark",
-  saffron: "bg-saffron/10 text-saffron",
-};
-
 export function HowItWorks() {
   return (
-    <section className="py-20 bg-white">
+    <section className="py-24 bg-white relative overflow-hidden">
+      {/* Subtle background decoration */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-magenta/[0.02] blur-3xl pointer-events-none" />
+
       <Container>
         <SectionHeader
-          title="How Shagun Works"
-          subtitle="Three simple steps to your dream wedding"
+          title="Three Steps to Forever"
+          subtitle="Planning your celebration has never been this effortless"
         />
 
         <motion.div
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto"
+          viewport={{ once: true, amount: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 max-w-5xl mx-auto relative"
         >
-          {steps.map((step, i) => (
-            <motion.div key={step.title} variants={fadeInUp} className="text-center">
-              <div className={`w-20 h-20 rounded-2xl ${colorMap[step.color]} flex items-center justify-center mx-auto mb-6`}>
-                <step.icon size={32} />
+          {/* Connecting line — desktop only */}
+          <div className="hidden md:block absolute top-16 left-[20%] right-[20%] h-px bg-gradient-to-r from-magenta/20 via-gold/30 to-saffron/20" />
+
+          {steps.map((step) => (
+            <motion.div key={step.number} variants={fadeInUp} className="relative text-center group">
+              {/* Icon with gradient */}
+              <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${step.gradient} flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300`}>
+                <step.icon size={32} className="text-white" />
               </div>
-              <div className="text-sm font-medium text-magenta mb-2">Step {i + 1}</div>
-              <h3 className="font-heading text-xl text-charcoal mb-3">{step.title}</h3>
-              <p className="text-slate text-sm leading-relaxed">{step.description}</p>
+
+              {/* Step number */}
+              <span className="text-xs font-bold tracking-[0.3em] uppercase text-slate/40 mb-3 block">
+                Step {step.number}
+              </span>
+
+              <h3 className="font-heading text-2xl text-charcoal mb-3">{step.title}</h3>
+              <p className="text-slate text-sm leading-relaxed max-w-xs mx-auto">{step.description}</p>
             </motion.div>
           ))}
         </motion.div>

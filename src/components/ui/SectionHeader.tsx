@@ -1,25 +1,41 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { fadeInUp } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 interface SectionHeaderProps {
   title: string;
   subtitle?: string;
   align?: "left" | "center";
+  light?: boolean;
   className?: string;
 }
 
-export function SectionHeader({ title, subtitle, align = "center", className }: SectionHeaderProps) {
+export function SectionHeader({ title, subtitle, align = "center", light = false, className }: SectionHeaderProps) {
   return (
-    <div className={cn("mb-12", align === "center" && "text-center", className)}>
-      <h2 className="font-heading text-3xl sm:text-4xl text-charcoal mb-3">{title}</h2>
+    <motion.div
+      variants={fadeInUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.5 }}
+      className={cn("mb-14", align === "center" && "text-center", className)}
+    >
+      <h2 className={cn(
+        "font-heading text-3xl sm:text-4xl lg:text-5xl mb-4 tracking-tight",
+        light ? "text-white" : "text-charcoal"
+      )}>
+        {title}
+      </h2>
       {subtitle && (
-        <p className="text-slate text-lg max-w-2xl mx-auto">{subtitle}</p>
+        <p className={cn(
+          "text-lg max-w-2xl leading-relaxed",
+          align === "center" && "mx-auto",
+          light ? "text-white/60" : "text-slate"
+        )}>
+          {subtitle}
+        </p>
       )}
-      <div
-        className={cn(
-          "mt-4 h-1 w-16 bg-gradient-gold rounded-full",
-          align === "center" && "mx-auto"
-        )}
-      />
-    </div>
+    </motion.div>
   );
 }

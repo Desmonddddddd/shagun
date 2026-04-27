@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { fadeInUp, staggerContainer } from "@/lib/motion";
+import { fadeInUp, staggerFast } from "@/lib/motion";
 import { Container } from "@/components/ui/Container";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import type { City } from "@/types";
@@ -13,43 +13,48 @@ interface CitySelectorProps {
 }
 
 export function CitySelector({ cities }: CitySelectorProps) {
+  // Only show cities that have images
+  const displayCities = cities.filter((c) => c.image);
+  if (displayCities.length === 0) return null;
+
   return (
-    <section className="py-20 bg-white">
+    <section className="py-24 bg-white">
       <Container>
         <SectionHeader
-          title="Popular Wedding Destinations"
-          subtitle="Explore vendors in India's most popular wedding cities"
+          title="Celebrating Across India"
+          subtitle="Find vendors in the country's most sought-after wedding destinations"
         />
 
         <motion.div
-          variants={staggerContainer}
+          variants={staggerFast}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"
         >
-          {cities.map((city) => (
-            <motion.div key={city.id} variants={fadeInUp}>
-              <Link href={`/cities/${city.slug}`}>
-                <div className="group relative overflow-hidden rounded-2xl aspect-square card-shadow hover:card-shadow-hover transition-all duration-300">
-                  {city.image && (
+          <div className="scroll-strip justify-start md:justify-center">
+            {displayCities.map((city) => (
+              <motion.div key={city.id} variants={fadeInUp}>
+                <Link href={`/cities/${city.slug}`} className="group block text-center">
+                  <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden mx-auto mb-3 ring-2 ring-transparent group-hover:ring-gold shadow-elevated group-hover:shadow-glow-gold transition-all duration-500">
                     <Image
-                      src={city.image}
+                      src={city.image!}
                       alt={city.name}
                       fill
                       className="object-cover group-hover:scale-110 transition-transform duration-500"
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      sizes="144px"
                     />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal/70 to-transparent" />
-                  <div className="absolute bottom-4 left-4">
-                    <h3 className="font-heading text-xl text-white">{city.name}</h3>
-                    <p className="text-white/70 text-sm">{city.vendorCount} vendors</p>
+                    <div className="absolute inset-0 bg-charcoal/10 group-hover:bg-charcoal/0 transition-colors duration-300" />
                   </div>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
+                  <h4 className="font-heading text-charcoal text-base sm:text-lg group-hover:text-magenta transition-colors">
+                    {city.name}
+                  </h4>
+                  {city.vendorCount > 1 && (
+                    <p className="text-slate text-xs mt-0.5">{city.vendorCount} vendors</p>
+                  )}
+                </Link>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
       </Container>
     </section>

@@ -6,9 +6,7 @@ import { HowItWorks } from "@/components/home/HowItWorks";
 import { AIChatPromo } from "@/components/home/AIChatPromo";
 import { RealWeddings } from "@/components/home/RealWeddings";
 import { CitySelector } from "@/components/home/CitySelector";
-import { Testimonials } from "@/components/home/Testimonials";
-import { Stats } from "@/components/home/Stats";
-import { AppDownload } from "@/components/home/AppDownload";
+import { CTABanner } from "@/components/home/CTABanner";
 
 export const dynamic = "force-dynamic";
 
@@ -58,9 +56,7 @@ export default async function HomePage() {
       <AIChatPromo />
       {realWeddings.length > 0 && <RealWeddings weddings={realWeddings} />}
       {cities.length > 0 && <CitySelector cities={cities} />}
-      <Testimonials />
-      <Stats />
-      <AppDownload />
+      <CTABanner />
     </>
   );
 }
