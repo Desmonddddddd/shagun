@@ -14,7 +14,7 @@ interface CategoryGridProps {
 }
 
 function getIcon(iconName: string) {
-  const Icon = (Icons as Record<string, React.ComponentType<{ size?: number; className?: string }>>)[iconName];
+  const Icon = (Icons as unknown as Record<string, React.ComponentType<{ size?: number; className?: string }>>)[iconName];
   return Icon || Icons.Tag;
 }
 
